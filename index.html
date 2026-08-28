@@ -151,8 +151,18 @@ img{ display:block; max-width:100%; }
 /* ============================================================
    01 HERO
    ============================================================ */
-.hero{ min-height:100svh; display:grid; align-items:center; gap:clamp(2.4rem,5vw,4.5rem); padding-block:8.5rem 4rem; overflow:hidden; }
+.hero{ min-height:100svh; display:grid; align-items:center; gap:clamp(2.4rem,5vw,4.5rem); padding-block:8.5rem 4rem; overflow:hidden;
+  background:
+    linear-gradient(90deg, rgba(11,10,9,0.95) 0%, rgba(11,10,9,0.86) 44%, rgba(11,10,9,0.64) 74%, rgba(11,10,9,0.8) 100%),
+    linear-gradient(0deg, rgba(11,10,9,0.9), rgba(11,10,9,0.38) 42%, rgba(11,10,9,0.6)),
+    url("hero-bg.jpg") center/cover no-repeat;
+  background-color:var(--obsidian); }
 @media (min-width:920px){ .hero{ grid-template-columns:1.05fr 0.85fr; } }
+@media (max-width:919px){
+  .hero{ background:
+      linear-gradient(180deg, rgba(11,10,9,0.84) 0%, rgba(11,10,9,0.66) 40%, rgba(11,10,9,0.92) 100%),
+      url("hero-bg.jpg") center/cover no-repeat;
+    background-color:var(--obsidian); } }
 
 .hero__glow{ position:absolute; inset:0; z-index:0; pointer-events:none;
   background:radial-gradient(58% 42% at 78% 26%, rgba(216,184,117,0.12), transparent 62%),
@@ -353,9 +363,6 @@ img{ display:block; max-width:100%; }
 
   <!-- 01 HERO -->
   <header class="sect sect--dark hero" id="hero">
-    <div class="hero__glow" aria-hidden="true"></div>
-    <div class="hero__bokeh" aria-hidden="true"></div>
-
     <div class="hero__body">
       <div class="hero__eyebrow"><span class="eyebrow">Please join us to celebrate</span></div>
       <div class="hero__name">Buyanda&rsquo;s</div>
