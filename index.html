@@ -10,7 +10,7 @@
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Buyanda &middot; Twenty-One" />
 <meta property="og:description" content="You are invited. Saturday, 12 December 2026. Confirm your place and the evening will be revealed." />
-<meta property="og:image" content="img-champagne.jpg" />
+<meta property="og:image" content="hero-bg.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -151,18 +151,17 @@ img{ display:block; max-width:100%; }
 /* ============================================================
    01 HERO
    ============================================================ */
-.hero{ min-height:100svh; display:grid; align-items:center; gap:clamp(2.4rem,5vw,4.5rem); padding-block:8.5rem 4rem; overflow:hidden;
+.hero{ min-height:100svh; display:flex; align-items:center; padding-block:8.5rem 4rem; overflow:hidden;
   background:
-    linear-gradient(90deg, rgba(11,10,9,0.95) 0%, rgba(11,10,9,0.86) 44%, rgba(11,10,9,0.64) 74%, rgba(11,10,9,0.8) 100%),
-    linear-gradient(0deg, rgba(11,10,9,0.9), rgba(11,10,9,0.38) 42%, rgba(11,10,9,0.6)),
-    url("hero-bg.jpg") center/cover no-repeat;
-  background-color:var(--obsidian); }
-@media (min-width:920px){ .hero{ grid-template-columns:1.05fr 0.85fr; } }
+    linear-gradient(90deg, rgba(10,8,5,0.74) 0%, rgba(10,8,5,0.58) 26%, rgba(10,8,5,0.3) 46%, rgba(10,8,5,0.02) 66%, rgba(10,8,5,0) 100%),
+    url("hero-bg.jpg") right center/cover no-repeat;
+  background-color:#0B0A09; }
 @media (max-width:919px){
   .hero{ background:
-      linear-gradient(180deg, rgba(11,10,9,0.84) 0%, rgba(11,10,9,0.66) 40%, rgba(11,10,9,0.92) 100%),
-      url("hero-bg.jpg") center/cover no-repeat;
-    background-color:var(--obsidian); } }
+      linear-gradient(180deg, rgba(10,8,5,0.5) 0%, rgba(10,8,5,0.32) 38%, rgba(10,8,5,0.8) 100%),
+      linear-gradient(90deg, rgba(10,8,5,0.62) 0%, rgba(10,8,5,0.12) 72%, rgba(10,8,5,0) 100%),
+      url("hero-bg.jpg") right center/cover no-repeat;
+    background-color:#0B0A09; } }
 
 .hero__glow{ position:absolute; inset:0; z-index:0; pointer-events:none;
   background:radial-gradient(58% 42% at 78% 26%, rgba(216,184,117,0.12), transparent 62%),
@@ -175,7 +174,8 @@ img{ display:block; max-width:100%; }
   animation:drift 24s ease-in-out infinite alternate; }
 @keyframes drift{ from{transform:translate3d(0,0,0)} to{transform:translate3d(-2%,-2.4%,0)} }
 
-.hero__body{ position:relative; z-index:2; }
+.hero__body{ position:relative; z-index:2; max-width:min(620px,58%); text-shadow:0 2px 30px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.4); }
+@media (max-width:919px){ .hero__body{ max-width:100%; } }
 .hero__eyebrow{ overflow:hidden; }
 .hero__eyebrow .eyebrow{ transform:translateY(120%); }
 .hero.go .hero__eyebrow .eyebrow{ transform:none; transition:transform 1s var(--ease) .3s; }
@@ -377,10 +377,7 @@ img{ display:block; max-width:100%; }
       </div>
     </div>
 
-    <figure class="hero__figure">
-      <div class="framed"><img src="img-champagne.jpg" alt="A glass of champagne catching warm golden light" loading="eager" /></div>
-    </figure>
-  </header>
+    </header>
 
   <!-- 02 CELEBRATION -->
   <section class="sect sect--cream bay">
