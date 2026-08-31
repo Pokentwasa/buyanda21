@@ -901,31 +901,95 @@ function emailConfirmation(){
   window.location.href = "mailto:" + to + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
 }
 
+function trackedText(str){ return str.split("").join(" "); }
+
 function downloadConfirmationPDF(){
   if(!currentGuest){ toast("Nothing to download yet"); return; }
   if(!window.jspdf){ toast("PDF tool didn't load — check your connection and try again"); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:"pt", format:"a5" });
   const g = currentGuest;
-  let y = 60;
+  const W = 420, H = 595, M = 24, CX = W / 2;
 
-  doc.setFont("times", "italic");
-  doc.setFontSize(20);
-  doc.text("Buyanda's 21st & Graduation", 40, y); y += 32;
+  const OBSIDIAN = [11,10,9], CHAMPAGNE = [216,184,117], GOLD = [185,150,85],
+        IVORY = [245,239,229], IVORY_DIM = [178,171,158], TAUPE = [142,129,114];
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(12);
-  doc.text("RSVP Confirmation", 40, y); y += 28;
-  doc.text("Name: " + g.full_name, 40, y); y += 20;
-  doc.text("Status: " + (g.attending ? "Attending" : "Not attending"), 40, y); y += 20;
-  if(g.attending){
-    doc.text("Guests: " + g.guest_count, 40, y); y += 20;
-    if(revealedVenue && revealedVenue.name){
-      doc.text("Venue: " + revealedVenue.name, 40, y); y += 20;
-      doc.text("Address: " + revealedVenue.address, 40, y); y += 20;
-    }
+  const center = (text, y) => doc.text(text, CX, y, { align:"center" });
+
+  // background + gold frame with corner brackets
+  doc.setFillColor(...OBSIDIAN);
+  doc.rect(0, 0, W, H, "F");
+  doc.setDrawColor(...CHAMPAGNE);
+  doc.setLineWidth(0.6);
+  doc.rect(M, M, W - M * 2, H - M * 2);
+  doc.setLineWidth(1.1);
+  doc.line(M, M, M + 14, M);         doc.line(M, M, M, M + 14);
+  doc.line(W-M-14, H-M, W-M, H-M);   doc.line(W-M, H-M-14, W-M, H-M);
+
+  // eyebrow
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(...CHAMPAGNE);
+  center(trackedText("BUYANDA · TWENTY-ONE"), M + 42);
+
+  // title
+  doc.setFont("times", "normal"); doc.setFontSize(30); doc.setTextColor(...IVORY);
+  center("Birthday", M + 84);
+  doc.setFont("times", "italic"); doc.setTextColor(...CHAMPAGNE);
+  center("& Graduation", M + 118);
+
+  // status badge
+  const statusLabel = g.attending ? "RSVP CONFIRMED   ·   ATTENDING" : "RSVP RECEIVED   ·   WITH REGRETS";
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+  const badgeW = doc.getTextWidth(statusLabel) + 30;
+  doc.setDrawColor(...CHAMPAGNE); doc.setLineWidth(0.6);
+  doc.roundedRect(CX - badgeW / 2, M + 138, badgeW, 22, 1, 1);
+  doc.setTextColor(...CHAMPAGNE);
+  center(statusLabel, M + 152);
+
+  // divider
+  doc.setDrawColor(...GOLD); doc.setLineWidth(0.5);
+  doc.line(CX - 20, M + 186, CX + 20, M + 186);
+
+  let y = M + 224;
+  function label(text){
+    doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(...TAUPE);
+    center(trackedText(text), y); y += 17;
   }
-  doc.text("When: Saturday, 12 December 2026, 1:00 PM", 40, y);
+  function value(text, opts = {}){
+    doc.setFont("times", opts.italic ? "italic" : "normal");
+    doc.setFontSize(opts.size || 14);
+    doc.setTextColor(...(opts.color || IVORY));
+    const lines = doc.splitTextToSize(text, W - M * 2 - 60);
+    const lineHeight = (opts.size || 14) * 1.15;
+    lines.forEach(line => { center(line, y); y += lineHeight; });
+    y += opts.gapAfter != null ? opts.gapAfter : 12;
+  }
+
+  label("WHEN");
+  value("Saturday, 12 December 2026");
+  value("One o'clock in the afternoon", { italic:true, size:10.5, color:IVORY_DIM, gapAfter:22 });
+
+  if(g.attending && revealedVenue && revealedVenue.name){
+    label("WHERE");
+    value(revealedVenue.name, { color:CHAMPAGNE, size:15 });
+    value(revealedVenue.address, { italic:true, size:10, color:IVORY_DIM, gapAfter:22 });
+  }
+
+  label("IN THE NAME OF");
+  value(g.full_name, { gapAfter: g.attending && g.guest_count > 1 ? 12 : 0 });
+
+  if(g.attending && g.guest_count > 1){
+    label("PARTY OF");
+    value(String(g.guest_count) + " in the party");
+  }
+
+  // footer
+  const footerY = H - M - 46;
+  doc.setDrawColor(...CHAMPAGNE); doc.setLineWidth(0.4);
+  doc.line(CX - 16, footerY - 22, CX + 16, footerY - 22);
+  doc.setFont("times", "italic"); doc.setFontSize(20); doc.setTextColor(...CHAMPAGNE);
+  center("Buyanda", footerY);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(...IVORY_DIM);
+  center(trackedText("TWENTY-ONE · 12 DECEMBER 2026"), footerY + 16);
 
   doc.save("buyanda-21-rsvp.pdf");
 }
