@@ -860,7 +860,10 @@ async function showConfirmation(token){
   }
 
   inv.classList.add("hidden");
-  reveal.classList.remove("on"); reveal.setAttribute("aria-hidden","true");
+  reveal.classList.remove("on", "sweeping"); reveal.setAttribute("aria-hidden","true");
+  plate.classList.remove("show");
+  beat1.classList.remove("show");
+  beat2.classList.remove("show");
   document.body.classList.remove("locked");
   cf.classList.remove("hidden");
   window.scrollTo(0,0);
