@@ -310,8 +310,8 @@ img{ display:block; max-width:100%; }
 .beat h3{ font-family:var(--serif); font-weight:300; font-size:clamp(2rem,6vw,3.6rem); color:var(--ivory); line-height:1.2; margin-top:1rem; }
 .beat h3 em{ font-style:italic; color:var(--cream); }
 
-.plate{ position:relative; max-width:40rem; opacity:0; transform:translateY(18px); transition:opacity 1.2s var(--ease), transform 1.2s var(--ease); }
-.plate.show{ opacity:1; transform:none; }
+.plate{ position:relative; max-width:40rem; opacity:0; transform:translateY(18px); pointer-events:none; transition:opacity 1.2s var(--ease), transform 1.2s var(--ease); }
+.plate.show{ opacity:1; transform:none; pointer-events:auto; }
 .plate .p-eyebrow{ font-family:var(--sans); font-weight:300; font-size:0.64rem; letter-spacing:0.5em; text-transform:uppercase; color:var(--champagne); }
 .plate .p-name{ font-family:var(--serif); font-weight:500; font-size:clamp(2.4rem,7vw,4rem); color:var(--champagne); line-height:1.05; margin:1.4rem 0 1rem; }
 .plate .p-addr{ font-family:var(--serif); font-weight:300; font-style:italic; font-size:clamp(1.1rem,2.6vw,1.4rem); color:var(--ivory-dim); line-height:1.5; }
@@ -500,7 +500,11 @@ img{ display:block; max-width:100%; }
 <!-- 05 REVEAL -->
 <div class="reveal" id="reveal" aria-live="assertive" aria-hidden="true">
   <div class="reveal__sweep" aria-hidden="true"></div>
-  <div class="beat" data-beat="1"><p>RSVP confirmed</p><h3>Your place has been <em>reserved.</em></h3></div>
+  <div class="beat" data-beat="1">
+    <p>RSVP confirmed</p>
+    <h3>Your RSVP has been <em>confirmed.</em></h3>
+    <button class="btn" id="rv-reveal" style="margin-top:2.4rem" type="button">Reveal Venue</button>
+  </div>
   <div class="beat" data-beat="2"><p>And now</p><h3><em>the destination.</em></h3></div>
   <div class="plate" id="plate">
     <p class="p-eyebrow">You are invited to</p>
@@ -511,6 +515,7 @@ img{ display:block; max-width:100%; }
     <div class="plate__actions">
       <button class="ghost" id="rv-cal">Add to calendar</button>
       <button class="ghost" id="rv-map">Open in maps</button>
+      <button class="ghost" id="rv-save">Save location</button>
       <button class="ghost" id="rv-done">Keep my confirmation</button>
     </div>
   </div>
@@ -532,6 +537,7 @@ img{ display:block; max-width:100%; }
     <div class="card__actions">
       <button class="ghost" id="cf-cal">Add to calendar</button>
       <button class="ghost" id="cf-map">Open in maps</button>
+      <button class="ghost" id="cf-save">Save location</button>
     </div>
   </div>
 </main>
@@ -773,7 +779,11 @@ async function runReveal(token, payload){
 
   await wait(700);
   beat1.classList.add("show");
-  await wait(2600);
+  const revealBtn = document.getElementById("rv-reveal");
+  revealBtn.focus();
+
+  await new Promise(resolve => revealBtn.addEventListener("click", resolve, { once:true }));
+
   beat1.classList.remove("show");
   await wait(900);
 
@@ -795,6 +805,7 @@ function fillPlate(venue){
 
 document.getElementById("rv-cal").addEventListener("click", () => downloadICS(revealedVenue));
 document.getElementById("rv-map").addEventListener("click", () => openMaps(revealedVenue));
+document.getElementById("rv-save").addEventListener("click", () => saveLocation(revealedVenue));
 document.getElementById("rv-done").addEventListener("click", async () => {
   const token = currentToken();
   reveal.classList.remove("on"); reveal.setAttribute("aria-hidden","true");
@@ -838,10 +849,28 @@ async function showConfirmation(token){
 
 document.getElementById("cf-cal").addEventListener("click", () => downloadICS(revealedVenue));
 document.getElementById("cf-map").addEventListener("click", () => openMaps(revealedVenue));
+document.getElementById("cf-save").addEventListener("click", () => saveLocation(revealedVenue));
 
 /* ============================================================
    ADD TO CALENDAR + MAPS
    ============================================================ */
+function saveLocation(venue){
+  if(!venue || !venue.name){ toast("The address will appear here on the night"); return; }
+  const mapsUrl = venue.mapsQuery ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(venue.mapsQuery) : "";
+  const text = [venue.name, venue.address, mapsUrl].filter(Boolean).join("\n");
+
+  if(navigator.share){
+    navigator.share({ title: venue.name, text }).catch(() => {});
+    return;
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text)
+      .then(() => toast("Location copied — save it for the day"))
+      .catch(() => toast(text));
+    return;
+  }
+  toast(text);
+}
 function icsDate(dateISO, time){
   return dateISO.replace(/-/g,"") + "T" + time.replace(":","") + "00";
 }
