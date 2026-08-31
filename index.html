@@ -316,6 +316,17 @@ img{ display:block; max-width:100%; }
 .plate .p-name{ font-family:var(--serif); font-weight:500; font-size:clamp(2.4rem,7vw,4rem); color:var(--champagne); line-height:1.05; margin:1.4rem 0 1rem; }
 .plate .p-addr{ font-family:var(--serif); font-weight:300; font-style:italic; font-size:clamp(1.1rem,2.6vw,1.4rem); color:var(--ivory-dim); line-height:1.5; }
 .plate .divider{ width:40px; height:1px; background:var(--hairline); margin:2rem auto; }
+
+.plate__photos{ display:flex; justify-content:center; align-items:flex-end; gap:0; margin:2.6rem 0 3rem; }
+.polaroid{
+  background:var(--ivory); padding:0.6rem 0.6rem 1.8rem; width:clamp(108px, 22vw, 160px);
+  box-shadow:0 20px 44px -16px rgba(0,0,0,0.65); transition:transform .5s var(--ease);
+}
+.polaroid img{ display:block; width:100%; height:auto; }
+.polaroid--left{ transform:rotate(-7deg) translateX(10px); }
+.polaroid--right{ transform:rotate(6deg) translateX(-10px); margin-top:1.4rem; }
+.polaroid:hover{ transform:rotate(0deg) scale(1.05); z-index:1; position:relative; }
+
 .plate .p-when{ font-family:var(--sans); font-weight:300; font-size:0.72rem; letter-spacing:0.4em; text-transform:uppercase; color:var(--ivory); line-height:2.4; }
 .plate__actions{ display:flex; gap:2.2rem; justify-content:center; flex-wrap:wrap; margin-top:2.8rem; }
 
@@ -511,6 +522,10 @@ img{ display:block; max-width:100%; }
     <div class="p-name" id="v-name">&mdash;</div>
     <p class="p-addr" id="v-addr">&mdash;</p>
     <div class="divider" aria-hidden="true"></div>
+    <div class="plate__photos">
+      <div class="polaroid polaroid--left"><img src="venue-photo-1.jpg" alt="Buyanda dressed for the celebration in a black sequined gown" loading="lazy" /></div>
+      <div class="polaroid polaroid--right"><img src="venue-photo-2.jpg" alt="Buyanda celebrating in a red dress" loading="lazy" /></div>
+    </div>
     <p class="p-when">Saturday, 12 December 2026<br />One o&rsquo;clock in the afternoon</p>
     <div class="plate__actions">
       <button class="ghost" id="rv-cal">Add to calendar</button>
@@ -535,15 +550,16 @@ img{ display:block; max-width:100%; }
     </div>
     <div class="c-row"><p class="c-label">In the name of</p><p class="c-value" id="cf-name">&mdash;</p></div>
     <div class="card__actions">
-      <button class="ghost" id="cf-cal">Add to calendar</button>
-      <button class="ghost" id="cf-map">Open in maps</button>
-      <button class="ghost" id="cf-save">Save location</button>
+      <button class="ghost" id="cf-email">Send confirmation to email</button>
+      <button class="ghost" id="cf-pdf">Download as PDF</button>
+      <button class="ghost" id="cf-whatsapp">Send to WhatsApp</button>
     </div>
   </div>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script>
 /* ============================================================
    THE ONLY TWO THINGS YOU EDIT
@@ -608,7 +624,7 @@ const api = {
     const token = _token();
     try{
       localStorage.setItem("rsvp:" + token, JSON.stringify({
-        guest: { full_name:p.full_name, attending:p.attending, guest_count:p.guest_count }
+        guest: { full_name:p.full_name, email:p.email, attending:p.attending, guest_count:p.guest_count }
       }));
     }catch(e){ /* private mode - confirmation still shows right after submit */ }
     return { ok:true, token, duplicate:false };
@@ -748,6 +764,7 @@ async function onSubmit(){
   try{
     const res = await api.submitRSVP(payload);
     if(!res || !res.ok) throw new Error("failed");
+    currentGuest = payload;
     history.replaceState(null, "", "#/confirmation/" + res.token);
     if(attending){ await runReveal(res.token, payload); }
     else { await showConfirmation(res.token); }
@@ -766,6 +783,7 @@ const beat1 = document.querySelector('[data-beat="1"]');
 const beat2 = document.querySelector('[data-beat="2"]');
 const plate = document.getElementById("plate");
 let revealedVenue = null;
+let currentGuest = null;
 
 function wait(ms){ return new Promise(r => setTimeout(r, reduce ? Math.min(ms,120) : ms)); }
 
@@ -826,6 +844,7 @@ async function showConfirmation(token){
   }
 
   const g = data.guest;
+  currentGuest = g;
   document.getElementById("cf-status").textContent =
     g.attending ? "RSVP confirmed \u00b7 Attending" : "RSVP received \u00b7 With regrets";
   document.getElementById("cf-name").textContent = g.full_name;
@@ -847,9 +866,72 @@ async function showConfirmation(token){
   window.scrollTo(0,0);
 }
 
-document.getElementById("cf-cal").addEventListener("click", () => downloadICS(revealedVenue));
-document.getElementById("cf-map").addEventListener("click", () => openMaps(revealedVenue));
-document.getElementById("cf-save").addEventListener("click", () => saveLocation(revealedVenue));
+document.getElementById("cf-email").addEventListener("click", emailConfirmation);
+document.getElementById("cf-pdf").addEventListener("click", downloadConfirmationPDF);
+document.getElementById("cf-whatsapp").addEventListener("click", shareConfirmationWhatsApp);
+
+/* ============================================================
+   KEEP YOUR CONFIRMATION: EMAIL, PDF, WHATSAPP
+   ============================================================ */
+function buildConfirmationText(){
+  const g = currentGuest;
+  if(!g) return "";
+  const lines = [
+    EVENT.name,
+    "",
+    "Name: " + g.full_name,
+    "Status: " + (g.attending ? ("Attending" + (g.guest_count > 1 ? " (" + g.guest_count + " in the party)" : "")) : "Not attending")
+  ];
+  if(g.attending && revealedVenue && revealedVenue.name){
+    lines.push("Venue: " + revealedVenue.name);
+    lines.push("Address: " + revealedVenue.address);
+  }
+  lines.push("When: Saturday, 12 December 2026, 1:00 PM");
+  return lines.join("\n");
+}
+
+function emailConfirmation(){
+  if(!currentGuest){ toast("Nothing to send yet"); return; }
+  const to = currentGuest.email || "";
+  const subject = "My RSVP — " + EVENT.name;
+  const body = buildConfirmationText();
+  window.location.href = "mailto:" + to + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+}
+
+function downloadConfirmationPDF(){
+  if(!currentGuest){ toast("Nothing to download yet"); return; }
+  if(!window.jspdf){ toast("PDF tool didn't load — check your connection and try again"); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:"pt", format:"a5" });
+  const g = currentGuest;
+  let y = 60;
+
+  doc.setFont("times", "italic");
+  doc.setFontSize(20);
+  doc.text("Buyanda's 21st & Graduation", 40, y); y += 32;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+  doc.text("RSVP Confirmation", 40, y); y += 28;
+  doc.text("Name: " + g.full_name, 40, y); y += 20;
+  doc.text("Status: " + (g.attending ? "Attending" : "Not attending"), 40, y); y += 20;
+  if(g.attending){
+    doc.text("Guests: " + g.guest_count, 40, y); y += 20;
+    if(revealedVenue && revealedVenue.name){
+      doc.text("Venue: " + revealedVenue.name, 40, y); y += 20;
+      doc.text("Address: " + revealedVenue.address, 40, y); y += 20;
+    }
+  }
+  doc.text("When: Saturday, 12 December 2026, 1:00 PM", 40, y);
+
+  doc.save("buyanda-21-rsvp.pdf");
+}
+
+function shareConfirmationWhatsApp(){
+  const text = buildConfirmationText();
+  if(!text){ toast("Nothing to share yet"); return; }
+  window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank", "noopener");
+}
 
 /* ============================================================
    ADD TO CALENDAR + MAPS
