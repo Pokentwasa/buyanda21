@@ -15,7 +15,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet" />
 
 <style>
 /* ============================================================
@@ -140,7 +140,7 @@ img{ display:block; max-width:100%; }
 .nav.ready{ opacity:1; transform:none; transition:opacity .9s var(--ease) 2.4s, transform .9s var(--ease) 2.4s, background .5s var(--ease); }
 .nav.scrolled{ background:rgba(11,10,9,0.94); backdrop-filter:blur(3px); padding-block:0.85rem; }
 .nav__mark{ font-family:var(--serif); font-weight:500; font-size:1.15rem; letter-spacing:0.24em; text-transform:uppercase; color:var(--ivory); }
-.nav__mark b{ color:var(--champagne); font-weight:500; }
+.nav__mark b{ color:var(--gold); font-weight:700; font-size:1.55em; letter-spacing:0; }
 .nav__rsvp{
   font-family:var(--sans); font-weight:300; font-size:0.66rem; letter-spacing:0.34em; text-transform:uppercase;
   color:var(--ivory); background:none; border:1px solid var(--hairline-soft); padding:0.7rem 1.4rem; cursor:pointer;
@@ -185,8 +185,7 @@ img{ display:block; max-width:100%; }
 
 .hero__num{ display:flex; align-items:flex-start; gap:0.4rem; line-height:0.8; margin:0.2rem 0 0.4rem; opacity:0; transform:translateY(30px) scale(.99); }
 .hero.go .hero__num{ opacity:1; transform:none; transition:all 1.5s var(--ease) .85s; }
-.hero__num b{ font-family:var(--serif); font-weight:600; font-size:clamp(7rem,20vw,15rem); letter-spacing:-0.02em;
-  color:var(--champagne); background:linear-gradient(176deg, var(--champagne) 32%, var(--gold)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.hero__num b{ font-family:var(--serif); font-weight:700; font-size:clamp(7rem,20vw,15rem); letter-spacing:-0.02em; color:var(--gold); }
 .hero__num sup{ font-family:var(--serif); font-weight:500; font-size:clamp(1.6rem,4.5vw,3rem); color:var(--gold); margin-top:0.6em; letter-spacing:0.02em; }
 
 .hero__script{ font-family:var(--script); font-weight:400; font-size:clamp(2.6rem,8vw,4.6rem); color:var(--ivory); line-height:1; margin-top:0.2rem; opacity:0; transform:translateY(16px); }
